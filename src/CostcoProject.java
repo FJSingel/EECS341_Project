@@ -48,11 +48,16 @@ public class CostcoProject {
 		{
 			String input = kb.nextLine();
 			System.out.println(input);
-			if(input.equals("/?"))
+			if(input.equals("/?") || input.equals("help"))
 			{
 				System.out.println("Possible Commands:");
 				System.out.println("AddItem\t --This registers a new item into the database");
-				System.out.println("List\t --This command will list all entities in a table");
+				System.out.println("AddStore\t --This registers a new Store into the databaseXX");
+				System.out.println("AddVendor\t --This registers a new Vendor into the databaseXX");
+				System.out.println("AddBasket\t --This registers a new Basket into the databaseXX");
+				System.out.println("AddCustomer\t --This registers a new Customer into the databaseXX");
+				System.out.println("ListContents\t --This command will list all entities in a table");
+				System.out.println("ListTables\t --This command will list all tables");
 				System.out.println("Quit");
 			}else if(input.equals("AddItem"))
 			{
@@ -75,9 +80,52 @@ public class CostcoProject {
 				catch (SQLException e) {
 					System.out.println("Poor parameters input. Item not added.");
 					e.printStackTrace();
-					return;
 				}
-			}else if(input.equals("List"))
+			}else if(input.equals("AddStore"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					String rawInstr = "INSERT INTO store (Address, Phone, Hours) VALUES (\'";
+					System.out.print("\nAddress: ");
+					rawInstr += kb.nextLine() + "\', ";
+					System.out.print("\n(No -'s)Phone: ");
+					rawInstr += kb.nextLine() + ", \'";
+					System.out.print("\nHours: ");
+					rawInstr += kb.nextLine() + "\')";
+					instruction.executeUpdate(rawInstr);
+					System.out.println("Added store successfully!");
+				}
+				catch (SQLException e) {
+					System.out.println("Poor parameters input. Store not added.");
+					e.printStackTrace();
+				}
+			}else if(input.equals("AddVendor"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					String rawInstr = "INSERT INTO vendor (Name, Address, Phone) VALUES (\'";
+					System.out.print("\nName: ");
+					rawInstr += kb.nextLine() + "\', \'";
+					System.out.print("\nAddress: ");
+					rawInstr += kb.nextLine() + "\',";
+					System.out.print("\n(No -'s)Phone: ");
+					rawInstr += kb.nextLine() + ")";
+					instruction.executeUpdate(rawInstr);
+					System.out.println("Added vendor successfully!");
+				}
+				catch (SQLException e) {
+					System.out.println("Poor parameters input. Vendor not added.");
+					e.printStackTrace();
+				}
+			}else if(input.equals("ListTables"))
+			{
+				System.out.println("Vendor");
+				System.out.println("Store");
+				System.out.println("Item");
+				System.out.println("Basket");
+				System.out.println("Customer");
+				
+			}else if(input.equals("ListContents"))
 			{
 				try {
 					Statement instruction = connection.createStatement(); 
@@ -112,8 +160,6 @@ public class CostcoProject {
 				}
 				catch (SQLException e) {
 					System.out.println("Instructions Failed!");
-					e.printStackTrace();
-					return;
 				}
 			}else if(input.equals("Quit"))
 			{
