@@ -6,7 +6,6 @@
 	import java.sql.SQLException;
 	import java.sql.*;
 	import java.util.*;
-	import java.io.*;
 	 
 public class CostcoProject 
 {	 
@@ -47,7 +46,8 @@ public class CostcoProject
 		boolean live = true;
 		System.out.println("Taking input");
 		while(live)
-		{
+		{	
+			System.out.print("Main:");
 			String input = kb.nextLine();
 			System.out.println(input);
 			if(input.equals("/?") || input.equals("help"))
@@ -64,6 +64,10 @@ public class CostcoProject
 				System.out.println("AddToBasket\t --This command will add items to a basket");
 				System.out.println("Restock\t --This command will restock a store with a product");
 				System.out.println("Checkout\t --This command will generate a receipt for a basket and remove items from stock");
+				System.out.println("RestockAlerts\t --This command will generate a list of every item at 5 stock or lessXX");
+				System.out.println("HotItems\t --This command will generate a list of most popular itemsXX");
+				System.out.println("MostExpensive\t --This command will generate a list of the most expensive items in stockXX");
+				System.out.println("Cheapest\t --This command will generate a list of the least expensive items in stockXX");
 				System.out.println("Quit");
 			}else if(input.equals("AddItem"))
 			{
@@ -211,7 +215,7 @@ public class CostcoProject
 					
 					if(allStocked)
 					{
-						System.out.println("Checked out customer successfully!");
+						System.out.println("(None)\nChecked out customer successfully!");
 						
 						//remove purchased stock
 						ResultSet contents = instruction.executeQuery("SELECT Distinct basket.Item_Iid, store.Store_sid, basket.Quantity FROM basket_has_item as basket, storecustomer_has_basket as owned, "
@@ -361,27 +365,9 @@ public class CostcoProject
 					
 					//Print all items possible
 					ResultSet resultat = instruction.executeQuery(rawInstr);
-					System.out.println("\n"+title+"\n-------------------");
 					
 					//print each column until no columns left to print.
-					while(resultat.next()){
-						int count = 1;
-						while(true)
-						{
-							try
-							{
-								String rawOut = resultat.getString(count);
-								rawOut = rawOut.replace("\n", "");
-								System.out.print(rawOut + "\t");
-								count++;
-							}
-							catch(SQLException e)
-							{
-								System.out.println();
-								break;
-							}
-						}
-					}
+					PrintQuery(title, resultat);
 					
 				}
 				catch (SQLException e) {
@@ -393,6 +379,16 @@ public class CostcoProject
 				String title = kb.nextLine();
 				System.out.print("\n"+title+": " + CountContents(title, connection));
 				
+			}else if(input.equals("RestockAlerts"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					String rawInstr = "SELECT * FROM store_has_item where Quantity <= 5";
+					ResultSet resultat = instruction.executeQuery(rawInstr);
+					PrintQuery(" SID | IID | QTY", resultat);
+				} catch (SQLException e) {
+					System.out.println("Instructions Failed!");
+				}
 			}else if(input.equals("OpenCustomer"))
 			{
 				try {
@@ -407,9 +403,10 @@ public class CostcoProject
 					System.out.print("\nCustomer's Phone#: ");
 					
 					//Query newest basket number
-					rawInstr += kb.nextLine() + ", " + CountContents("basket", connection) + ", \'\')";
+					int basketNum = CountContents("basket", connection);
+					rawInstr += kb.nextLine() + ", " + basketNum + ", \'\')";
 					instruction.executeUpdate(rawInstr);
-					System.out.println("Added customer successfully!");//*/
+					System.out.println("Added customer successfully with basket " + basketNum + "!");//*/
 				}
 				catch (SQLException e) {
 					System.out.println("Poor parameters input. Customer not opened.");
@@ -424,7 +421,7 @@ public class CostcoProject
 			}
 		}
 		
-		//populate database
+		/*/populate database
 		try {
 			Statement instruction = connection.createStatement();
 
@@ -437,7 +434,7 @@ public class CostcoProject
 			instruction.executeUpdate("INSERT INTO item (MSRP, Name, Category, Mass, Brand) VALUES (1.99, 'Butter', 'Food', 200, 'Dairyland');");
 			instruction.executeUpdate("INSERT INTO item (MSRP, Name, Category, Mass, Brand) VALUES (4.0, 'Apple', 'Food', 250, 'Dole');");
 			instruction.executeUpdate("INSERT INTO item (MSRP, Name, Category, Mass, Brand) VALUES (3.3, 'Grapes', 'Food', 350, 'Dole');");
-			//*/
+			//*
 
 
 		}
@@ -445,7 +442,7 @@ public class CostcoProject
 			System.out.println("Population Failed!");
 			e.printStackTrace();
 			return;
-		}
+		}//*
 		
 		try {
 			Statement instruction = connection.createStatement(); 
@@ -461,8 +458,7 @@ public class CostcoProject
 		catch (SQLException e) {
 			System.out.println("Instructions Failed!");
 			e.printStackTrace();
-			return;
-		}
+		}//*/
 		System.out.println("\nDone");
 	  }	
 	  public static int CountContents(String title, Connection connection)
@@ -482,5 +478,35 @@ public class CostcoProject
 				e.printStackTrace();
 				return -1;
 			}
-	}
+	  }
+	  public static void PrintQuery(String title, ResultSet query)
+	  {
+		  
+			System.out.println("\n"+title+"\n-------------------");
+			
+			//print each column until no columns left to print.
+			try {
+				while(query.next()){
+					int count = 1;
+					while(true)
+					{
+						try
+						{
+							String rawOut = query.getString(count);
+							rawOut = rawOut.replace("\n", "");
+							System.out.print(rawOut + "\t");
+							count++;
+						}
+						catch(SQLException e)
+						{
+							System.out.println();
+							break;
+						}
+					}
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	  }
 }
