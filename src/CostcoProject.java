@@ -218,7 +218,7 @@ public class CostcoProject
 					{
 						System.out.println("Checked out customer successfully!");
 						
-						//remove stock
+						//remove purchased stock
 						ResultSet contents = instruction.executeQuery("SELECT Distinct basket.Item_Iid, store.Store_sid, basket.Quantity FROM basket_has_item as basket, storecustomer_has_basket as owned, "
 								+"store_has_item as store WHERE store.Item_Iid = basket.Item_Iid AND owned.Basket_Bid = basket.Basket_Bid AND "
 								+"owned.Store_Sid = store.store_sid AND owned.Basket_Bid = "+Bid+";");
@@ -241,8 +241,42 @@ public class CostcoProject
 								break;
 							}
 						}
-
+						
+						Statement instruction3 = connection.createStatement();
 						//generate receipt
+						ResultSet receipt = instruction3.executeQuery("SELECT Distinct item.name, basket.Item_Iid, basket.Quantity, "
+								+"basket.ActualPrice FROM basket_has_item as basket, storecustomer_has_basket as owned, store_has_item as store, "
+								+"item as item WHERE store.Item_Iid = basket.Item_Iid AND owned.Basket_Bid = basket.Basket_Bid "+
+								"AND owned.Store_Sid = store.store_sid AND item.Iid = basket.Item_Iid AND owned.Basket_Bid = "+Bid+";");
+						
+						double subtotal = 0;
+						
+						String tab = "Bill of Receipt\n----------------\n";
+						while(receipt.next()){
+							try
+							{
+								String Name = receipt.getString(1);
+								String Iid = receipt.getString(2);
+								String QTY = receipt.getString(3);
+								String Price = receipt.getString(4);
+								System.out.println(Iid);
+								System.out.println(Price);
+								System.out.println(QTY);
+								tab += Name + "("+Iid+")\t $" + Price + "x" + QTY + " = " + (Double.parseDouble(Price) * Integer.parseInt(QTY)) + "\n";
+								subtotal += (Double.parseDouble(Price) * Integer.parseInt(QTY));
+								
+
+							}
+							catch(SQLException e)
+							{
+								System.out.println("Something broke while generating receipt");
+								System.out.println(tab);
+								e.printStackTrace();
+								break;
+							}
+						}
+						tab += "\nTotal: " + subtotal;
+						instruction3.executeUpdate("update storecustomer_has_basket set Receipt = \'"+tab+"\' where Basket_BiD = "+Bid+";");
 					}else
 					{
 						System.out.println("Insufficient stock to fill order");
@@ -250,7 +284,7 @@ public class CostcoProject
 					
 				}
 				catch (SQLException e) {
-					System.out.println("Poor parameters input. Customer not added.");
+					System.out.println("Poor parameters input. Customer not checked out.");
 					e.printStackTrace();
 				}
 			}else if(input.equals("Restock"))
