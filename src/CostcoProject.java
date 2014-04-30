@@ -67,9 +67,9 @@ public class CostcoProject
 				System.out.println("RestockAlerts\t --This command will generate a list of every item at 5 stock or less");
 				System.out.println("HotItems\t --This command will generate a list of most popular items");
 				System.out.println("MostExpensive\t --This command will generate a list of the 10 most expensive items by MSRP");
-				System.out.println("Cheapest\t --This command will generate a list of the least expensive items in stockXX");
-				System.out.println("BRANDS?X?X?X");
+				System.out.println("Cheapest\t --This command will generate a list of the 10 least expensive items in stock");
 				System.out.println("ViewReceipts\t --This command will list all receipts for perusal");
+				System.out.println("ViewOpenBaskets\t --This command will list all basket contents that haven't been purchased.");
 				System.out.println("Quit");
 			}else if(input.equals("AddItem"))
 			{
@@ -401,20 +401,55 @@ public class CostcoProject
 				} catch (SQLException e) {
 					System.out.println("Instructions Failed!");
 				}
-
+			}else if(input.equals("LeastExpensive"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					String rawInstr = "SELECT * FROM costcoproject.item ORDER BY MSRP limit 10;";
+					ResultSet resultat = instruction.executeQuery(rawInstr);
+					PrintQuery(" IID | MSRP | Name | Category | Mass | Brand ", resultat);
+				} catch (SQLException e) {
+					System.out.println("Instructions Failed!");
+				}
 			}else if(input.equals("HotItems"))
 			{
 				try {
 					Statement instruction = connection.createStatement();
-					String rawInstr = "SELECT item . *, SUM(basket.quantity) as QTY FROM Basket_has_item as basket, item as item WHERE Basket_Bid IN (SELECT Basket_Bid FROM storecustomer_has_basket WHERE Receipt != '') AND item.Iid = basket.Item_Iid GROUP BY IID;";
+					String rawInstr = "SELECT item . *, SUM(basket.quantity) as QTY FROM Basket_has_item as basket, item as item WHERE Basket_Bid IN (SELECT Basket_Bid FROM storecustomer_has_basket WHERE Receipt != '') AND item.Iid = basket.Item_Iid GROUP BY IID ORDER BY QTY DESC;";
 					ResultSet resultat = instruction.executeQuery(rawInstr);
 					PrintQuery(" IID | MSRP | Name | Category | Mass | Brand | QTY ", resultat);
 				} catch (SQLException e) {
 					System.out.println("Instructions Failed!");
 				}
-
-			}
-			else if(input.equals("OpenCustomer"))
+			}else if(input.equals("ViewReceipts"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					String rawInstr = "SELECT Receipt FROM storecustomer_has_basket WHERE Receipt != \'\';";
+					ResultSet resultat = instruction.executeQuery(rawInstr);
+					while(resultat.next()){
+						String rawOut = resultat.getString(1);
+						System.out.println(rawOut);
+					}
+				} catch (SQLException e) {
+					System.out.println("Instructions Failed!");
+					e.printStackTrace();
+				}
+			}else if(input.equals("ViewOpenBaskets"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					String rawInstr = "SELECT Receipt FROM storecustomer_has_basket WHERE Receipt != \'\';";
+					ResultSet resultat = instruction.executeQuery(rawInstr);
+					while(resultat.next()){
+						String rawOut = resultat.getString(1);
+						System.out.println(rawOut);
+					}
+				} catch (SQLException e) {
+					System.out.println("Instructions Failed!");
+					e.printStackTrace();
+				}
+			}else if(input.equals("OpenCustomer"))
 			{
 				try {
 					Statement makeBasket = connection.createStatement();
@@ -445,45 +480,6 @@ public class CostcoProject
 				System.out.println("Command unrecognized. Try \'/?\' for help.");
 			}
 		}
-		
-		/*/populate database
-		try {
-			Statement instruction = connection.createStatement();
-
-			//Initialization of database (ONLY LET THIS RUN ONCE as each run accumulates these if not commented out)
-			//This will populate the database chosen above if you don't have data points to use
-			/*
-			instruction.executeUpdate("INSERT INTO item (MSRP, Name, Category, Mass, Brand) VALUES (5.0, 'Banana', 'Food', 50, 'Dole');");
-			instruction.executeUpdate("INSERT INTO item (MSRP, Name, Category, Mass, Brand) VALUES (3.50, 'Milk', 'Food', 550, 'Dairyland');");
-			instruction.executeUpdate("INSERT INTO item (MSRP, Name, Category, Mass, Brand) VALUES (2.50, 'Captain Crunch', 'Food', 250, 'GM');");
-			instruction.executeUpdate("INSERT INTO item (MSRP, Name, Category, Mass, Brand) VALUES (1.99, 'Butter', 'Food', 200, 'Dairyland');");
-			instruction.executeUpdate("INSERT INTO item (MSRP, Name, Category, Mass, Brand) VALUES (4.0, 'Apple', 'Food', 250, 'Dole');");
-			instruction.executeUpdate("INSERT INTO item (MSRP, Name, Category, Mass, Brand) VALUES (3.3, 'Grapes', 'Food', 350, 'Dole');");
-			//*
-
-
-		}
-		catch (SQLException e) {
-			System.out.println("Population Failed!");
-			e.printStackTrace();
-			return;
-		}//*
-		
-		try {
-			Statement instruction = connection.createStatement(); 
-			
-			//Print all items possible
-			ResultSet resultat = instruction.executeQuery("SELECT Iid,MSRP,Name,Category,Mass,Brand FROM item");
-			System.out.println("\nItems\n-------------------");
-			while(resultat.next()){
-				System.out.println(resultat.getString(1) + "\t" + resultat.getString(2) + "\t" + resultat.getString(3) + "\t" + resultat.getString(4) + "\t" + resultat.getString(5) + "\t" + resultat.getString(6));
-			}
-			
-		}
-		catch (SQLException e) {
-			System.out.println("Instructions Failed!");
-			e.printStackTrace();
-		}//*/
 		System.out.println("\nDone");
 	  }	
 	  public static int CountContents(String title, Connection connection)
