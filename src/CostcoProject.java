@@ -28,7 +28,7 @@ public class CostcoProject
 	 
 		try {
 			//This uses mysql to connect to the "mydb" database with credentials "root" and "password"
-			connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydb","root", "password");
+			connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/costcoproject","root", "password");
 	 
 		} catch (SQLException e) {
 			System.out.println("Connection Failed! Check output console");
