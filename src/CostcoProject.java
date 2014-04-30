@@ -65,8 +65,8 @@ public class CostcoProject
 				System.out.println("Restock\t --This command will restock a store with a product");
 				System.out.println("Checkout\t --This command will generate a receipt for a basket and remove items from stock");
 				System.out.println("RestockAlerts\t --This command will generate a list of every item at 5 stock or less");
-				System.out.println("HotItems\t --This command will generate a list of most popular itemsXX");
-				System.out.println("MostExpensive\t --This command will generate a list of the most expensive items in stockXX");
+				System.out.println("HotItems\t --This command will generate a list of most popular items");
+				System.out.println("MostExpensive\t --This command will generate a list of the 10 most expensive items by MSRP");
 				System.out.println("Cheapest\t --This command will generate a list of the least expensive items in stockXX");
 				System.out.println("BRANDS?X?X?X");
 				System.out.println("ViewReceipts\t --This command will list all receipts for perusal");
@@ -391,6 +391,17 @@ public class CostcoProject
 				} catch (SQLException e) {
 					System.out.println("Instructions Failed!");
 				}
+			}else if(input.equals("MostExpensive"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					String rawInstr = "SELECT * FROM costcoproject.item ORDER BY MSRP DESC limit 10;";
+					ResultSet resultat = instruction.executeQuery(rawInstr);
+					PrintQuery(" IID | MSRP | Name | Category | Mass | Brand ", resultat);
+				} catch (SQLException e) {
+					System.out.println("Instructions Failed!");
+				}
+
 			}else if(input.equals("HotItems"))
 			{
 				try {
