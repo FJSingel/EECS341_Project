@@ -343,6 +343,11 @@ public class CostcoProject
 				System.out.println("Item");
 				System.out.println("Basket");
 				System.out.println("Customer");
+				System.out.println("Store_has_Item");
+				System.out.println("Basket_has_Item");
+				System.out.println("StoreCustomer_has_basket");
+				System.out.println("Vendor_Supplies_Item_to_Store");
+				System.out.println("StoreCustomer_has_Basket");
 				
 			}else if(input.equals("ListContents"))
 			{
@@ -365,7 +370,9 @@ public class CostcoProject
 						{
 							try
 							{
-								System.out.print(resultat.getString(count) + "\t");
+								String rawOut = resultat.getString(count);
+								rawOut = rawOut.replace("\n", "");
+								System.out.print(rawOut + "\t");
 								count++;
 							}
 							catch(SQLException e)
