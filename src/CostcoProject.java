@@ -64,10 +64,12 @@ public class CostcoProject
 				System.out.println("AddToBasket\t --This command will add items to a basket");
 				System.out.println("Restock\t --This command will restock a store with a product");
 				System.out.println("Checkout\t --This command will generate a receipt for a basket and remove items from stock");
-				System.out.println("RestockAlerts\t --This command will generate a list of every item at 5 stock or lessXX");
+				System.out.println("RestockAlerts\t --This command will generate a list of every item at 5 stock or less");
 				System.out.println("HotItems\t --This command will generate a list of most popular itemsXX");
 				System.out.println("MostExpensive\t --This command will generate a list of the most expensive items in stockXX");
 				System.out.println("Cheapest\t --This command will generate a list of the least expensive items in stockXX");
+				System.out.println("BRANDS?X?X?X");
+				System.out.println("ViewReceipts\t --This command will list all receipts for perusal");
 				System.out.println("Quit");
 			}else if(input.equals("AddItem"))
 			{
@@ -389,7 +391,19 @@ public class CostcoProject
 				} catch (SQLException e) {
 					System.out.println("Instructions Failed!");
 				}
-			}else if(input.equals("OpenCustomer"))
+			}else if(input.equals("HotItems"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					String rawInstr = "SELECT item . *, SUM(basket.quantity) as QTY FROM Basket_has_item as basket, item as item WHERE Basket_Bid IN (SELECT Basket_Bid FROM storecustomer_has_basket WHERE Receipt != '') AND item.Iid = basket.Item_Iid GROUP BY IID;";
+					ResultSet resultat = instruction.executeQuery(rawInstr);
+					PrintQuery(" IID | MSRP | Name | Category | Mass | Brand | QTY ", resultat);
+				} catch (SQLException e) {
+					System.out.println("Instructions Failed!");
+				}
+
+			}
+			else if(input.equals("OpenCustomer"))
 			{
 				try {
 					Statement makeBasket = connection.createStatement();
@@ -482,7 +496,7 @@ public class CostcoProject
 	  public static void PrintQuery(String title, ResultSet query)
 	  {
 		  
-			System.out.println("\n"+title+"\n-------------------");
+			System.out.println("\n"+title+"\n-----------------------------------------------------------------");
 			
 			//print each column until no columns left to print.
 			try {
