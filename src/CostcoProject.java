@@ -130,13 +130,20 @@ public class CostcoProject
 					System.out.print("\nItem ID: ");
 					rawInstr += kb.nextLine() + ", ";
 					System.out.print("\nBasket ID: ");
-					rawInstr += kb.nextLine() + ", ";
+					String Bid = kb.nextLine();
+					rawInstr += Bid + ", ";
 					System.out.print("\nQuantity: ");
-					rawInstr += kb.nextLine() + ", ";
+					String Quantity = kb.nextLine();
+					rawInstr += Quantity + ", ";
 					System.out.print("\nActual Price: ");
-					rawInstr += kb.nextLine() + ")";
+					String Actual = kb.nextLine();
+					rawInstr += Actual + ")";
 
 					instruction.executeUpdate(rawInstr);
+					
+					//Keep running total in basket
+					instruction.executeUpdate("update basket set Total = Total + ("+Quantity+"*"+Actual+") where Bid = "+Bid+";");
+					
 					System.out.println("Item added to cart successfully!");
 				}
 				catch (SQLException e) {
@@ -174,12 +181,13 @@ public class CostcoProject
 					 * Where  Store_has_item.Quantity > Basket_has_item.Quantity AND Item_Iid = Iid AND IiD = 
 					 * 
 					 */
-					System.out.print("\nID of Basket to checkout: ");					
+					System.out.print("\nID of Basket to checkout: ");
+					String Bid = kb.nextLine();
 					Statement instruction = connection.createStatement();
 					String rawInstr = "SELECT DISTINCT item.Iid FROM basket_has_item AS basket, item AS item, "
 						+ " store_has_item as store, storecustomer_has_basket as owned WHERE basket.quantity > store.quantity"
 						+ " AND basket.Item_Iid = item.Iid AND store.Item_Iid = item.Iid AND owned.Basket_Bid = basket.Basket_Bid "
-						+ "AND owned.Store_Sid = store.store_sid AND owned.Basket_Bid = " + kb.nextLine() + ";";
+						+ "AND owned.Store_Sid = store.store_sid AND owned.Basket_Bid = " + Bid + ";";
 					
 					//Print all items possible
 					ResultSet resultat = instruction.executeQuery(rawInstr);
@@ -209,9 +217,35 @@ public class CostcoProject
 					if(allStocked)
 					{
 						System.out.println("Checked out customer successfully!");
+						
+						//remove stock
+						ResultSet contents = instruction.executeQuery("SELECT Distinct basket.Item_Iid, store.Store_sid, basket.Quantity FROM basket_has_item as basket, storecustomer_has_basket as owned, "
+								+"store_has_item as store WHERE store.Item_Iid = basket.Item_Iid AND owned.Basket_Bid = basket.Basket_Bid AND "
+								+"owned.Store_Sid = store.store_sid AND owned.Basket_Bid = "+Bid+";");
+						while(contents.next()){
+							try
+							{
+								Statement instruction2 = connection.createStatement();
+								String IiD = contents.getString(1);
+								String SiD = contents.getString(2);
+								String QTY = contents.getString(3);
+								System.out.println(IiD);
+								System.out.println(SiD);
+								System.out.println(QTY);
+								instruction2.executeUpdate("update store_has_item set Quantity = Quantity - "+QTY+" where Item_IiD = "+IiD+" AND Store_SiD = "+SiD+";");
+							}
+							catch(SQLException e)
+							{
+								System.out.println("Something broke while decrementing");
+								e.printStackTrace();
+								break;
+							}
+						}
+
+						//generate receipt
 					}else
 					{
-						System.out.println("Restock before checking out");
+						System.out.println("Insufficient stock to fill order");
 					}
 					
 				}
