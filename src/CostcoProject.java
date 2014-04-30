@@ -439,12 +439,9 @@ public class CostcoProject
 			{
 				try {
 					Statement instruction = connection.createStatement();
-					String rawInstr = "SELECT Receipt FROM storecustomer_has_basket WHERE Receipt != \'\';";
+					String rawInstr = "SELECT basket.* FROM Basket_has_item as basket, item as item WHERE Basket_Bid IN (SELECT Basket_Bid FROM storecustomer_has_basket WHERE Receipt = '') AND item.Iid = basket.Item_Iid ORDER BY Basket_Bid;";
 					ResultSet resultat = instruction.executeQuery(rawInstr);
-					while(resultat.next()){
-						String rawOut = resultat.getString(1);
-						System.out.println(rawOut);
-					}
+					PrintQuery(" BID | IID | QTY | Actual Price ", resultat);
 				} catch (SQLException e) {
 					System.out.println("Instructions Failed!");
 					e.printStackTrace();
