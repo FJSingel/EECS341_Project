@@ -8,8 +8,10 @@
 	import java.util.*;
 	import java.io.*;
 	 
-public class CostcoProject {	 
-	  public static void main(String[] argv) {
+public class CostcoProject 
+{	 
+	  public static void main(String[] argv) 
+	  {
 	 
 		System.out.println("-------- MySQL JDBC Connection Testing ------------");
 	 
@@ -52,12 +54,13 @@ public class CostcoProject {
 			{
 				System.out.println("Possible Commands:");
 				System.out.println("AddItem\t --This registers a new item into the database");
-				System.out.println("AddStore\t --This registers a new Store into the databaseXX");
-				System.out.println("AddVendor\t --This registers a new Vendor into the databaseXX");
-				System.out.println("AddBasket\t --This registers a new Basket into the databaseXX");
-				System.out.println("AddCustomer\t --This registers a new Customer into the databaseXX");
+				System.out.println("AddStore\t --This registers a new Store into the database");
+				System.out.println("AddVendor\t --This registers a new Vendor into the database");
+				System.out.println("AddCustomer\t --This registers a new Customer into the database");
 				System.out.println("ListContents\t --This command will list all entities in a table");
 				System.out.println("ListTables\t --This command will list all tables");
+				System.out.println("OpenCustomer\t --This command will open a basket for a customer");
+				System.out.println("CountContents\t --This command will count the number of entries in a table");
 				System.out.println("Quit");
 			}else if(input.equals("AddItem"))
 			{
@@ -117,6 +120,41 @@ public class CostcoProject {
 					System.out.println("Poor parameters input. Vendor not added.");
 					e.printStackTrace();
 				}
+			}else if(input.equals("AddCustomer"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					String rawInstr = "INSERT INTO customer (PhoneNum, Email, Address, CreditCardNum, Name) VALUES (";
+					System.out.print("\n(No -'s)Phone: ");
+					rawInstr += kb.nextLine() + ", \'";
+					System.out.print("\nEmail: ");
+					rawInstr += kb.nextLine() + "\', \'";
+					System.out.print("\nAddress: ");
+					rawInstr += kb.nextLine() + "\', ";
+					System.out.println("\nCredit Card Number: ");
+					rawInstr += kb.nextLine() + ", \'";
+					System.out.println("Name: ");
+					rawInstr += kb.nextLine() + "\')";
+					instruction.executeUpdate(rawInstr);
+					System.out.println("Added customer successfully!");
+				}
+				catch (SQLException e) {
+					System.out.println("Poor parameters input. Customer not added.");
+					e.printStackTrace();
+				}
+			}else if(input.equals("Sudo"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					System.out.println("Enter direct SQL command:");
+					String rawInstr = kb.nextLine();
+					instruction.executeUpdate(rawInstr);
+					System.out.println("Command processed successfully!");
+				}
+				catch (SQLException e) {
+					System.out.println("Command not processed.");
+					e.printStackTrace();
+				}
 			}else if(input.equals("ListTables"))
 			{
 				System.out.println("Vendor");
@@ -160,6 +198,34 @@ public class CostcoProject {
 				}
 				catch (SQLException e) {
 					System.out.println("Instructions Failed!");
+				}
+			}else if(input.equals("CountContents"))
+			{
+				System.out.print("\nTable to Count: ");
+				String title = kb.nextLine();
+				System.out.print("\n"+title+": " + CountContents(title, connection));
+				
+			}else if(input.equals("OpenCustomer"))
+			{
+				try {
+					Statement makeBasket = connection.createStatement();
+					makeBasket.executeUpdate("INSERT INTO Basket (Total) VALUES (0)");
+					System.out.println("Empty basket made.");
+					
+					Statement instruction = connection.createStatement();
+					String rawInstr = "INSERT INTO StoreCustomer_has_Basket (Store_Sid, Customer_PhoneNum, Basket_Bid, Receipt) VALUES (";
+					System.out.print("\nStore's ID: ");
+					rawInstr += kb.nextLine() + ", ";
+					System.out.print("\nCustomer's Phone#: ");
+					
+					//Query newest basket number
+					rawInstr += kb.nextLine() + ", " + CountContents("basket", connection) + ", \'\')";
+					instruction.executeUpdate(rawInstr);
+					System.out.println("Added customer successfully!");//*/
+				}
+				catch (SQLException e) {
+					System.out.println("Poor parameters input. Customer not opened.");
+					e.printStackTrace();
 				}
 			}else if(input.equals("Quit"))
 			{
@@ -211,4 +277,22 @@ public class CostcoProject {
 		}
 		System.out.println("\nDone");
 	  }	
+	  public static int CountContents(String title, Connection connection)
+	  {
+		  try {
+				Statement instruction = connection.createStatement(); 
+				
+				String rawInstr = "SELECT COUNT(*) FROM " + title;
+				
+				//Print all items possible
+				ResultSet resultat = instruction.executeQuery(rawInstr);
+				resultat.next();
+				return Integer.parseInt(resultat.getString(1));
+			}
+			catch (SQLException e) {
+				System.out.println("Instructions Failed!");
+				e.printStackTrace();
+				return -1;
+			}
+	}
 }
