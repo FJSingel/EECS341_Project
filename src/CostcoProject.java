@@ -10,7 +10,7 @@
 	 
 public class CostcoProject 
 {	 
-	  public static void main(String[] argv) 
+	  public static void main(String[] argv)
 	  {
 	 
 		System.out.println("-------- MySQL JDBC Connection Testing ------------");
@@ -61,8 +61,9 @@ public class CostcoProject
 				System.out.println("ListTables\t --This command will list all tables");
 				System.out.println("OpenCustomer\t --This command will open a basket for a customer");
 				System.out.println("CountContents\t --This command will count the number of entries in a table");
-				System.out.println("AddToBasket\t --This command will add items to a basketXX");
-				System.out.println("Checkout\t --This command will generate a receipt for a basket and remove items from stockXX");
+				System.out.println("AddToBasket\t --This command will add items to a basket");
+				System.out.println("Restock\t --This command will restock a store with a product");
+				System.out.println("Checkout\t --This command will generate a receipt for a basket and remove items from stock");
 				System.out.println("Quit");
 			}else if(input.equals("AddItem"))
 			{
@@ -175,12 +176,6 @@ public class CostcoProject
 			}else if(input.equals("Checkout"))
 			{
 				try {
-					/* Generate a list of items that are being over-purchased
-					 * Select IiD
-					 * From   Item, Basket_has_Item, Store_has_item
-					 * Where  Store_has_item.Quantity > Basket_has_item.Quantity AND Item_Iid = Iid AND IiD = 
-					 * 
-					 */
 					System.out.print("\nID of Basket to checkout: ");
 					String Bid = kb.nextLine();
 					Statement instruction = connection.createStatement();
@@ -229,9 +224,6 @@ public class CostcoProject
 								String IiD = contents.getString(1);
 								String SiD = contents.getString(2);
 								String QTY = contents.getString(3);
-								System.out.println(IiD);
-								System.out.println(SiD);
-								System.out.println(QTY);
 								instruction2.executeUpdate("update store_has_item set Quantity = Quantity - "+QTY+" where Item_IiD = "+IiD+" AND Store_SiD = "+SiD+";");
 							}
 							catch(SQLException e)
@@ -259,9 +251,6 @@ public class CostcoProject
 								String Iid = receipt.getString(2);
 								String QTY = receipt.getString(3);
 								String Price = receipt.getString(4);
-								System.out.println(Iid);
-								System.out.println(Price);
-								System.out.println(QTY);
 								tab += Name + "("+Iid+")\t $" + Price + "x" + QTY + " = " + (Double.parseDouble(Price) * Integer.parseInt(QTY)) + "\n";
 								subtotal += (Double.parseDouble(Price) * Integer.parseInt(QTY));
 								
@@ -290,25 +279,50 @@ public class CostcoProject
 			}else if(input.equals("Restock"))
 			{
 				try {
+					//Create entry in vendor supplies
 					Statement instruction = connection.createStatement();
-					String rawInstr = "INSERT INTO customer (PhoneNum, Email, Address, CreditCardNum, Name) VALUES (";
-					System.out.print("\n(No -'s)Phone: ");
-					rawInstr += kb.nextLine() + ", \'";
-					System.out.print("\nEmail: ");
-					rawInstr += kb.nextLine() + "\', \'";
-					System.out.print("\nAddress: ");
-					rawInstr += kb.nextLine() + "\', ";
-					System.out.println("\nCredit Card Number: ");
-					rawInstr += kb.nextLine() + ", \'";
-					System.out.println("Name: ");
-					rawInstr += kb.nextLine() + "\')";
+					String rawInstr = "INSERT INTO vendor_supplies_item_to_store (Vendor_Vid, Item_Iid, Store_Sid, Price, Quantity, Date) VALUES (";
+					System.out.print("\nVendor ID: ");
+					String Vid = kb.nextLine();
+					rawInstr += Vid + ", ";
+					System.out.print("\nItem ID: ");
+					String Iid = kb.nextLine();
+					rawInstr += Iid + ", ";
+					System.out.print("\nStore ID: ");
+					String Sid = kb.nextLine();
+					rawInstr += Sid + ", ";
+					System.out.print("\nPrice: ");
+					String price = kb.nextLine();
+					rawInstr += price + ", ";
+					System.out.print("\nQuantity: ");
+					String QTY = kb.nextLine();
+					rawInstr += QTY + ", \'";
+					System.out.print("\nDate: ");
+					String Date = kb.nextLine();
+					rawInstr += Date + "\')";
+					
+					
 					instruction.executeUpdate(rawInstr);
-					System.out.println("Added customer successfully!");
+					System.out.println("Placed restock successfully!");
+					
+					//Check if store has stocked this before
+					ResultSet contents = instruction.executeQuery("SELECT Distinct Item_Iid, Store_Sid, Quantity FROM store_has_item WHERE Item_Iid = "+Iid+" AND Store_Sid = " + Sid);
+					//If no prior results
+					if (!contents.first())
+					{
+						instruction.executeUpdate("INSERT INTO store_has_item (Store_Sid, Item_Iid, Quantity) VALUES ("+Sid+", "+Iid+", "+QTY+")");
+					}else {
+						instruction.executeUpdate("update store_has_item set Quantity = Quantity + "+QTY+" where Item_IiD = "+Iid+" AND Store_SiD = "+Sid+";");
+					}
+					System.out.println("Increased stock successfully!");
+					
 				}
 				catch (SQLException e) {
-					System.out.println("Poor parameters input. Customer not added.");
+					System.out.println("Poor parameters input. Order not stocked.");
 					e.printStackTrace();
 				}
+				
+				
 			}else if(input.equals("Sudo"))
 			{
 				try {
