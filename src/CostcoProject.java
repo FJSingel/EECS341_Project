@@ -61,6 +61,8 @@ public class CostcoProject
 				System.out.println("ListTables\t --This command will list all tables");
 				System.out.println("OpenCustomer\t --This command will open a basket for a customer");
 				System.out.println("CountContents\t --This command will count the number of entries in a table");
+				System.out.println("AddToBasket\t --This command will add items to a basketXX");
+				System.out.println("Checkout\t --This command will generate a receipt for a basket and remove items from stockXX");
 				System.out.println("Quit");
 			}else if(input.equals("AddItem"))
 			{
@@ -120,7 +122,104 @@ public class CostcoProject
 					System.out.println("Poor parameters input. Vendor not added.");
 					e.printStackTrace();
 				}
+			}else if(input.equals("AddToBasket"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					String rawInstr = "INSERT INTO Basket_has_item (Item_Iid, Basket_Bid, Quantity, ActualPrice) VALUES (";
+					System.out.print("\nItem ID: ");
+					rawInstr += kb.nextLine() + ", ";
+					System.out.print("\nBasket ID: ");
+					rawInstr += kb.nextLine() + ", ";
+					System.out.print("\nQuantity: ");
+					rawInstr += kb.nextLine() + ", ";
+					System.out.print("\nActual Price: ");
+					rawInstr += kb.nextLine() + ")";
+
+					instruction.executeUpdate(rawInstr);
+					System.out.println("Item added to cart successfully!");
+				}
+				catch (SQLException e) {
+					System.out.println("Invalid addition. Item not added.");
+					e.printStackTrace();
+				}
 			}else if(input.equals("AddCustomer"))
+			{
+				try {
+					Statement instruction = connection.createStatement();
+					String rawInstr = "INSERT INTO customer (PhoneNum, Email, Address, CreditCardNum, Name) VALUES (";
+					System.out.print("\n(No -'s)Phone: ");
+					rawInstr += kb.nextLine() + ", \'";
+					System.out.print("\nEmail: ");
+					rawInstr += kb.nextLine() + "\', \'";
+					System.out.print("\nAddress: ");
+					rawInstr += kb.nextLine() + "\', ";
+					System.out.println("\nCredit Card Number: ");
+					rawInstr += kb.nextLine() + ", \'";
+					System.out.println("Name: ");
+					rawInstr += kb.nextLine() + "\')";
+					instruction.executeUpdate(rawInstr);
+					System.out.println("Added customer successfully!");
+				}
+				catch (SQLException e) {
+					System.out.println("Poor parameters input. Customer not added.");
+					e.printStackTrace();
+				}
+			}else if(input.equals("Checkout"))
+			{
+				try {
+					/* Generate a list of items that are being over-purchased
+					 * Select IiD
+					 * From   Item, Basket_has_Item, Store_has_item
+					 * Where  Store_has_item.Quantity > Basket_has_item.Quantity AND Item_Iid = Iid AND IiD = 
+					 * 
+					 */
+					System.out.print("\nID of Basket to checkout: ");					
+					Statement instruction = connection.createStatement();
+					String rawInstr = "SELECT DISTINCT item.Iid FROM basket_has_item AS basket, item AS item, "
+						+ " store_has_item as store, storecustomer_has_basket as owned WHERE basket.quantity > store.quantity"
+						+ " AND basket.Item_Iid = item.Iid AND store.Item_Iid = item.Iid AND owned.Basket_Bid = basket.Basket_Bid "
+						+ "AND owned.Store_Sid = store.store_sid AND owned.Basket_Bid = " + kb.nextLine() + ";";
+					
+					//Print all items possible
+					ResultSet resultat = instruction.executeQuery(rawInstr);
+					System.out.println("\nStock more of the following items before checking out\n-------------------------------------");
+					
+					boolean allStocked = true;
+					
+					//print each column until no columns left to print.
+					while(resultat.next()){
+						int count = 1;
+						while(true)
+						{
+							try
+							{
+								System.out.print(resultat.getString(count) + "\t");
+								allStocked = false;
+								count++;
+							}
+							catch(SQLException e)
+							{
+								System.out.println();
+								break;
+							}
+						}
+					}
+					
+					if(allStocked)
+					{
+						System.out.println("Checked out customer successfully!");
+					}else
+					{
+						System.out.println("Restock before checking out");
+					}
+					
+				}
+				catch (SQLException e) {
+					System.out.println("Poor parameters input. Customer not added.");
+					e.printStackTrace();
+				}
+			}else if(input.equals("Restock"))
 			{
 				try {
 					Statement instruction = connection.createStatement();
