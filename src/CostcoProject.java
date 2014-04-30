@@ -70,6 +70,7 @@ public class CostcoProject
 				System.out.println("Cheapest\t --This command will generate a list of the 10 least expensive items in stock");
 				System.out.println("ViewReceipts\t --This command will list all receipts for perusal");
 				System.out.println("ViewOpenBaskets\t --This command will list all basket contents that haven't been purchased.");
+				System.out.println("SudoQuery\t --This command will allow you to produce your own queries to the DB.");
 				System.out.println("Quit");
 			}else if(input.equals("AddItem"))
 			{
@@ -445,6 +446,17 @@ public class CostcoProject
 				} catch (SQLException e) {
 					System.out.println("Instructions Failed!");
 					e.printStackTrace();
+				}
+			}else if(input.equals("SudoQuery"))
+			{
+				try {
+					System.out.print("Enter Query here:");
+					String query = kb.nextLine();
+					Statement instruction = connection.createStatement();
+					ResultSet resultat = instruction.executeQuery(query);
+					PrintQuery(" Custom Query ", resultat);
+				} catch (SQLException e) {
+					System.out.println("Instructions Failed. Provide Valid Query.");
 				}
 			}else if(input.equals("OpenCustomer"))
 			{
